@@ -9,7 +9,107 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Checkout repositoryname: Build Tauri App
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
     - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install Rust stable
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install Dependencies & Build Tauri
+      shell: bash
+      run: |
+        unzip -o src-tauri.zip
+        
+        # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
+        rm -f Cargo.toml
+
+        # Δημιουργία πλήρους Cargo.toml
+        mkdir -p src-tauri
+        cat << 'EOF' > src-tauri/Cargo.toml
+        [package]
+        name = "shield-desktop"
+        version = "0.1.0"
+        edition = "2021"
+
+        [dependencies]
+        tauri = { version = "1", features = [ "api-all" ] }
+        serde = { version = "1", features = [ "derive" ] }
+        serde_json = "1"
+        log = "0.4"
+        env_logger = "0.10"
+
+        [build-dependencies]
+        tauri-build = { version = "1" }
+        EOF
+
+        # Δημιουργία του build.rs
+        cat << 'EOF' > src-tauri/build.rs
+        fn main() {
+            tauri_build::build()
+        }
+        EOF
+
+        # Δημιουργία συμβατού tauri.conf.json με κενή λίστα icons για αποφυγή σφαλμάτων RC.EXE
+        cat << 'EOF' > src-tauri/tauri.conf.json
+        {
+          "build": {
+            "distDir": "../ui",
+            "devPath": "http://localhost:1420",
+            "beforeDevCommand": "",
+            "beforeBuildCommand": ""
+          },
+          "package": {
+            "productName": "shield-desktop",
+            "version": "0.1.0"
+          },
+          "tauri": {
+            "allowlist": {
+              "all": true
+            },
+            "bundle": {
+              "active": true,
+              "targets": ["nsis"],
+              "identifier": "com.shield.desktop",
+              "icon": []
+            },
+            "security": {
+              "csp": null
+            },
+            "windows": [
+              {
+                "title": "Shield Desktop",
+                "width": 800,
+                "height": 600
+              }
+            ]
+          }
+        }
+        EOF
+        
+        cd src-tauri
+        cargo build --release
+
+    - name: Upload Release Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: ShieldCore-Windows-Binary
+        path: src-tauri/target/release/shield-desktop.exe
       uses: actions/checkout@v4
 
     - name: Setup Node.js
