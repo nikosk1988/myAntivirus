@@ -22,6 +22,7 @@ jobs:
 
     - name: Install Dependencies & Build Tauri
       run: |
+        # Αποσυμπίεση και μετάβαση στον σωστό φάκελο
         Expand-Archive -Path "src-tauri.zip" -DestinationPath "." -Force
         cd src-tauri
         cargo build --release
