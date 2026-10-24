@@ -28,7 +28,7 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
         
-        # Δημιουργία πλήρους Cargo.toml με όλες τις απαιτούμενες εξαρτήσεις
+        # Δημιουργία σωστού Cargo.toml
         mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
@@ -37,11 +37,48 @@ jobs:
         edition = "2021"
 
         [dependencies]
-        tauri = { version = "1" }
+        tauri = { version = "1", features = [ "api-all" ] }
         serde = { version = "1", features = [ "derive" ] }
         serde_json = "1"
         log = "0.4"
         env_logger = "0.10"
+        EOF
+
+        # Δημιουργία συμβατού tauri.conf.json για αποφυγή σφαλμάτων schema
+        cat << 'EOF' > src-tauri/tauri.conf.json
+        {
+          "build": {
+            "distDir": "../ui",
+            "devPath": "http://localhost:1420",
+            "beforeDevCommand": "",
+            "beforeBuildCommand": ""
+          },
+          "package": {
+            "productName": "shield-desktop",
+            "version": "0.1.0"
+          },
+          "tauri": {
+            "allowlist": {
+              "all": true
+            },
+            "bundle": {
+              "active": true,
+              "targets": ["nsis"],
+              "identifier": "com.shield.desktop",
+              "icon": []
+            },
+            "security": {
+              "csp": null
+            },
+            "windows": [
+              {
+                "title": "Shield Desktop",
+                "width": 800,
+                "height": 600
+              }
+            ]
+          }
+        }
         EOF
         
         cd src-tauri
