@@ -21,9 +21,9 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Install Dependencies & Build Tauri
+      shell: bash
       run: |
-        # Αποσυμπίεση και μετάβαση στον σωστό φάκελο
-        Expand-Archive -Path "src-tauri.zip" -DestinationPath "." -Force
+        unzip -o src-tauri.zip
         cd src-tauri
         cargo build --release
 
