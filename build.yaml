@@ -1,0 +1,32 @@
+name: Build Tauri App
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install Rust stable
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install Dependencies & Build Tauri
+      run: |
+        cd src-tauri
+        cargo build --release
+
+    - name: Upload Release Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: ShieldCore-Windows-Binary
+        path: src-tauri/target/release/shield-desktop.exe
