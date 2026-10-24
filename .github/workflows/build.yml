@@ -28,8 +28,11 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
 
+        # Δημιουργία φακέλου icons και λήψη έγκυρου icon.ico
+        mkdir -p src-tauri/icons
+        curl -sL https://raw.githubusercontent.com/tauri-apps/tauri/dev/examples/window-customization/icons/icon.ico -o src-tauri/icons/icon.ico
+
         # Δημιουργία πλήρους Cargo.toml
-        mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
         name = "shield-desktop"
@@ -54,7 +57,7 @@ jobs:
         }
         EOF
 
-        # Δημιουργία συμβατού tauri.conf.json με κενή λίστα icons για αποφυγή σφαλμάτων RC.EXE
+        # Δημιουργία συμβατού tauri.conf.json με σωστή διαδρομή εικονιδίου
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
@@ -75,7 +78,9 @@ jobs:
               "active": true,
               "targets": ["nsis"],
               "identifier": "com.shield.desktop",
-              "icon": []
+              "icon": [
+                "icons/icon.ico"
+              ]
             },
             "security": {
               "csp": null
