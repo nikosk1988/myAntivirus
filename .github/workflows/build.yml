@@ -22,7 +22,9 @@ jobs:
 
     - name: Install Dependencies & Build Tauri
       run: |
-        cargo build --release --manifest-path src-tauri/Cargo.toml
+        ls -R
+        cd myAntivirus-main/src-tauri
+        cargo build --release
 
     - name: Upload Release Binary
       uses: actions/upload-artifact@v4
