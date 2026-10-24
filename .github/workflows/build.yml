@@ -28,9 +28,9 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
         
-        # Δημιουργία φακέλου icons και ενός dummy αρχείου icon.ico για να μην αποτυγχάνει το tauri-build
+        # Δημιουργία φακέλου icons και λήψη ενός έγκυρου icon.ico
         mkdir -p src-tauri/icons
-        touch src-tauri/icons/icon.ico
+        curl -sL https://raw.githubusercontent.com/tauri-apps/tauri/dev/examples/window-customization/icons/icon.ico -o src-tauri/icons/icon.ico
 
         # Δημιουργία πλήρους Cargo.toml
         cat << 'EOF' > src-tauri/Cargo.toml
@@ -57,7 +57,7 @@ jobs:
         }
         EOF
 
-        # Δημιουργία συμβατού tauri.conf.json (χωρίς υποχρεωτικό icon path)
+        # Δημιουργία συμβατού tauri.conf.json
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
