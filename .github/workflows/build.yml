@@ -15,15 +15,15 @@ jobs:
     - name: Install Rust stable
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Build Rust Project
+    - name: Build Rust EDR Project
       shell: bash
       run: |
         unzip -o src-tauri.zip
         
-        # Καθαρισμός τυχόν Cargo.toml στο root
+        # Καθαρισμός τυχόν περιττών αρχείων στο root
         rm -f Cargo.toml
 
-        # Δημιουργία του Cargo.toml μέσα στον φάκελο src-tauri
+        # Δημιουργία σωστού Cargo.toml χωρίς εξαρτήσεις Tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
         name = "shield-core"
@@ -37,6 +37,78 @@ jobs:
         notify = "6.1"
         log = "0.4"
         env_logger = "0.10"
+        EOF
+
+        # Αντικατάσταση του παλιού main.rs (με Tauri) με τον καθαρό EDR backend κώδικα
+        cat << 'EOF' > src-tauri/src/main.rs
+        mod intel;
+        mod monitor;
+        mod scanner;
+        mod behavior;
+        mod sandbox;
+        mod process_guard;
+        mod quarantine;
+
+        use intel::ThreatIntel;
+        use scanner::StaticScanner;
+        use behavior::BehavioralMonitor;
+        use process_guard::ProcessGuard;
+        use quarantine::QuarantineManager;
+        use sysinfo::{System, get_current_pid};
+        use std::time::Duration;
+        use tokio::time;
+
+        #[tokio::main]
+        async fn main() -> Result<(), Box<dyn std::error::Error>> {
+            env_logger::init();
+            log::info!("=== SHIELD CORE ADVANCED EDR ENGINE v0.2 INITIALIZING ===");
+
+            let current_pid = get_current_pid().expect("Failed to get self PID");
+            log::info!("[SELF-PROTECTION] Shield Core running on PID: {}", current_pid);
+
+            // 1. Threat Intel Engine Setup
+            let intel = ThreatIntel::new("shield_intel.db")?;
+            intel.update_feeds().await?;
+
+            // 2. Quarantine Manager Setup
+            let quarantine_mgr = QuarantineManager::new(".")?;
+            log::info!("[+] Quarantine Manager online.");
+
+            // 3. Dynamic Process Lineage Monitor Task
+            tokio::spawn(async move {
+                let process_guard = ProcessGuard::new();
+                let mut sys = System::new_all();
+                
+                loop {
+                    sys.refresh_all();
+                    process_guard.inspect_process_tree(&sys, current_pid);
+                    tokio::time::sleep(Duration::from_millis(1500)).await;
+                }
+            });
+
+            // 4. Background Threat Feed Auto-Sync (Κάθε 24 ώρες)
+            let intel_clone = ThreatIntel::new("shield_intel.db")?;
+            tokio::spawn(async move {
+                let mut interval = time::interval(Duration::from_secs(86400));
+                loop {
+                    interval.tick().await;
+                    let _ = intel_clone.update_feeds().await;
+                }
+            });
+
+            // 5. Behavioral Ransomware Guard
+            std::thread::spawn(move || {
+                let behavior_guard = BehavioralMonitor::new(".");
+                let _ = behavior_guard.start_filesystem_guard();
+            });
+
+            log::info!("=== ALL ADVANCED PROTECTION LAYERS FULLY ENGAGED ===");
+
+            tokio::signal::ctrl_c().await?;
+            log::info!("=== SHIELD CORE SHUTTING DOWN SAFELY ===");
+
+            Ok(())
+        }
         EOF
 
         cd src-tauri
