@@ -28,7 +28,15 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
 
-        # Δημιουργία πλήρους Cargo.toml
+        # Δημιουργία φακέλου icons και ενός έγκυρου icon.png (1x1 transparent PNG)
+        mkdir -p src-tauri/icons
+        python3 -c "
+        png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+        with open('src-tauri/icons/icon.png', 'wb') as f:
+            f.write(png_data)
+        "
+
+        # Δημιουργία πλήρους Cargo.toml με το tauri-build
         mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
@@ -42,14 +50,19 @@ jobs:
         serde_json = "1"
         log = "0.4"
         env_logger = "0.10"
+
+        [build-dependencies]
+        tauri-build = { version = "1" }
         EOF
 
-        # Κενό build.rs ώστε να μην εκτελείται ποτέ ο RC.EXE των Windows
+        # Δημιουργία του build.rs
         cat << 'EOF' > src-tauri/build.rs
-        fn main() {}
+        fn main() {
+            tauri_build::build()
+        }
         EOF
 
-        # Δημιουργία tauri.conf.json
+        # Δημιουργία tauri.conf.json με αναφορά στο icon.png
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
@@ -67,10 +80,12 @@ jobs:
               "all": true
             },
             "bundle": {
-              "active": false,
-              "targets": [],
+              "active": true,
+              "targets": ["nsis"],
               "identifier": "com.shield.desktop",
-              "icon": []
+              "icon": [
+                "icons/icon.png"
+              ]
             },
             "security": {
               "csp": null
