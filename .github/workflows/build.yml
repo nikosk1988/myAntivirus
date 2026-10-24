@@ -25,18 +25,22 @@ jobs:
       run: |
         unzip -o src-tauri.zip
         
-        # Αν δεν υπάρχει Cargo.toml μέσα στο src-tauri, το δημιουργούμε αυτόματα
-        if [ ! -f "src-tauri/Cargo.toml" ]; then
-          echo '[package]' > src-tauri/Cargo.toml
-          echo 'name = "shield-desktop"' >> src-tauri/Cargo.toml
-          echo 'version = "0.1.0"' >> src-tauri/Cargo.toml
-          echo 'edition = "2021"' >> src-tauri/Cargo.toml
-          echo '' >> src-tauri/Cargo.toml
-          echo '[dependencies]' >> src-tauri/Cargo.toml
-          echo 'tauri = { version = "1", features = [ "all" ] }' >> src-tauri/Cargo.toml
-          echo 'serde = { version = "1", features = [ "derive" ] }' >> src-tauri/Cargo.toml
-          echo 'serde_json = "1"' >> src-tauri/Cargo.toml
-        fi
+        # Διαγραφή του άκυρου Cargo.toml από το root
+        rm -f Cargo.toml
+        
+        # Δημιουργία έγκυρου Cargo.toml μέσα στο src-tauri
+        mkdir -p src-tauri
+        cat << 'EOF' > src-tauri/Cargo.toml
+        [package]
+        name = "shield-desktop"
+        version = "0.1.0"
+        edition = "2021"
+
+        [dependencies]
+        tauri = { version = "1", features = [ "all" ] }
+        serde = { version = "1", features = [ "derive" ] }
+        serde_json = "1"
+        EOF
         
         cd src-tauri
         cargo build --release
