@@ -23,9 +23,7 @@ jobs:
     - name: Install Dependencies & Build Tauri
       shell: bash
       run: |
-        unzip -o src-tauri.zip
-        cd src-tauri
-        cargo build --release
+        unzip -o src-tauri.zip && cd src-tauri && cargo build --release
 
     - name: Upload Release Binary
       uses: actions/upload-artifact@v4
