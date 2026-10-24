@@ -28,11 +28,18 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
 
-        # Δημιουργία φακέλου icons και λήψη έγκυρου icon.ico
+        # Δημιουργία φακέλου icons
         mkdir -p src-tauri/icons
-        curl -sL https://raw.githubusercontent.com/tauri-apps/tauri/dev/examples/window-customization/icons/icon.ico -o src-tauri/icons/icon.ico
+
+        # Δημιουργία ενός έγκυρου, ελάχιστου icon.ico απευθείας σε Base64 (Windows-compatible)
+        python3 -c "
+        ico_data = b'\x00\x00\x01\x00\x01\x00\x10\x10\x00\x00\x01\x00\x18\x00h\x00\x00\x00&\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00 \x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x000\x00\x00\x00\xc4\x0e\x00\x00\xc4\x0e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00'
+        with open('src-tauri/icons/icon.ico', 'wb') as f:
+            f.write(ico_data)
+        "
 
         # Δημιουργία πλήρους Cargo.toml
+        mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
         name = "shield-desktop"
@@ -57,7 +64,7 @@ jobs:
         }
         EOF
 
-        # Δημιουργία συμβατού tauri.conf.json με σωστή διαδρομή εικονιδίου
+        # Δημιουργία συμβατού tauri.conf.json
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
