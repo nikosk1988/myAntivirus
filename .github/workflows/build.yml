@@ -20,8 +20,11 @@ jobs:
       run: |
         unzip -o src-tauri.zip
         
-        # Αντικατάσταση ή δημιουργία καθαρού Cargo.toml για το EDR backend
-        cat << 'EOF' > Cargo.toml
+        # Καθαρισμός τυχόν Cargo.toml στο root
+        rm -f Cargo.toml
+
+        # Δημιουργία του Cargo.toml μέσα στον φάκελο src-tauri
+        cat << 'EOF' > src-tauri/Cargo.toml
         [package]
         name = "shield-core"
         version = "0.2.0"
@@ -36,10 +39,11 @@ jobs:
         env_logger = "0.10"
         EOF
 
+        cd src-tauri
         cargo build --release
 
     - name: Upload Stable Binary
       uses: actions/upload-artifact@v4
       with:
         name: ShieldCore-Stable-Binary
-        path: target/release/shield-core.exe
+        path: src-tauri/target/release/shield-core.exe
