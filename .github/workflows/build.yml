@@ -25,10 +25,10 @@ jobs:
       run: |
         unzip -o src-tauri.zip
         
-        # Διαγραφή του άκυρου Cargo.toml από το root
+        # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
         
-        # Δημιουργία έγκυρου Cargo.toml μέσα στο src-tauri
+        # Δημιουργία καθαρού Cargo.toml χωρίς ανύπαρκτα features
         mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
@@ -37,7 +37,7 @@ jobs:
         edition = "2021"
 
         [dependencies]
-        tauri = { version = "1", features = [ "all" ] }
+        tauri = { version = "1" }
         serde = { version = "1", features = [ "derive" ] }
         serde_json = "1"
         EOF
