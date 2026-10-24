@@ -1,4 +1,4 @@
-name: Build Tauri App
+name: Build Stable EDR Binary
 
 on:
   push:
@@ -12,110 +12,34 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
-
     - name: Install Rust stable
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Install Python Pillow
-      run: pip install pillow
-
-    - name: Install Dependencies & Build Tauri
+    - name: Build Rust Project
       shell: bash
       run: |
         unzip -o src-tauri.zip
         
-        # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
-        rm -f Cargo.toml
-
-        # Δημιουργία φακέλου icons και παραγωγή έγκυρου icon.ico μέσω Python Pillow
-        mkdir -p src-tauri/icons
-        python -c "
-        from PIL import Image
-        img = Image.new('RGB', (256, 256), color = (30, 144, 255))
-        img.save('src-tauri/icons/icon.ico', format='ICO', sizes=[(16,16), (32,32), (48,48), (256,256)])
-        "
-
-        # Δημιουργία πλήρους Cargo.toml με το tauri-build
-        cat << 'EOF' > src-tauri/Cargo.toml
+        # Αντικατάσταση ή δημιουργία καθαρού Cargo.toml για το EDR backend
+        cat << 'EOF' > Cargo.toml
         [package]
-        name = "shield-desktop"
-        version = "1.0.0"
+        name = "shield-core"
+        version = "0.2.0"
         edition = "2021"
 
         [dependencies]
-        tauri = { version = "1", features = [ "api-all" ] }
-        serde = { version = "1", features = [ "derive" ] }
-        serde_json = "1"
+        tokio = { version = "1", features = ["full"] }
+        sysinfo = "0.30"
+        chrono = "0.4"
+        notify = "6.1"
         log = "0.4"
         env_logger = "0.10"
-
-        [build-dependencies]
-        tauri-build = { version = "1" }
         EOF
 
-        # Δημιουργία του build.rs
-        cat << 'EOF' > src-tauri/build.rs
-        fn main() {
-            tauri_build::build()
-        }
-        EOF
-
-        # Δημιουργία διορθωμένου tauri.conf.json (με σωστό distDir ανάλογα με τη δομή)
-        # Δημιουργία διορθωμένου tauri.conf.json χωρίς devPath για production build
-        cat << 'EOF' > src-tauri/tauri.conf.json
-        {
-          "build": {
-            "distDir": "./ui",
-            "beforeDevCommand": "",
-            "beforeBuildCommand": ""
-          },
-          "package": {
-            "productName": "ShieldCoreAntivirus",
-            "version": "1.0.0"
-          },
-          "tauri": {
-            "allowlist": {
-              "all": true
-            },
-            "bundle": {
-              "active": true,
-              "targets": ["nsis"],
-              "identifier": "com.shield.core.desktop",
-              "icon": [
-                "icons/icon.ico"
-              ]
-            },
-            "security": {
-              "csp": null
-            },
-            "windows": [
-              {
-                "title": "Shield Core Antivirus",
-                "width": 1150,
-                "height": 780,
-                "resizable": true
-              }
-            ]
-          }
-        }
-        EOF
-        
-        # Δημιουργία ενός βασικού index.html μέσα στο src-tauri/ui αν δεν υπάρχει, 
-        # ώστε να μην σκάει με connection refused
-        mkdir -p src-tauri/ui
-        if [ ! -f src-tauri/ui/index.html ]; then
-          echo '<(!DOCTYPE html><html><body><h1>Shield Core Antivirus UI</h1></body></html>' > src-tauri/ui/index.html
-        fi
-        
-        cd src-tauri
         cargo build --release
 
-    - name: Upload Release Binary
+    - name: Upload Stable Binary
       uses: actions/upload-artifact@v4
       with:
-        name: ShieldCore-Windows-Binary
-        path: src-tauri/target/release/shield-desktop.exe
+        name: ShieldCore-Stable-Binary
+        path: target/release/shield-core.exe
