@@ -28,16 +28,6 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
 
-        # Δημιουργία φακέλου icons
-        mkdir -p src-tauri/icons
-
-        # Δημιουργία ενός έγκυρου, ελάχιστου icon.ico απευθείας σε Base64 (Windows-compatible)
-        python3 -c "
-        ico_data = b'\x00\x00\x01\x00\x01\x00\x10\x10\x00\x00\x01\x00\x18\x00h\x00\x00\x00&\x00\x00\x00(\x00\x00\x00\x10\x00\x00\x00 \x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x000\x00\x00\x00\xc4\x0e\x00\x00\xc4\x0e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00'
-        with open('src-tauri/icons/icon.ico', 'wb') as f:
-            f.write(ico_data)
-        "
-
         # Δημιουργία πλήρους Cargo.toml
         mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
@@ -52,19 +42,14 @@ jobs:
         serde_json = "1"
         log = "0.4"
         env_logger = "0.10"
-
-        [build-dependencies]
-        tauri-build = { version = "1" }
         EOF
 
-        # Δημιουργία του build.rs
+        # Κενό build.rs ώστε να μην εκτελείται ποτέ ο RC.EXE των Windows
         cat << 'EOF' > src-tauri/build.rs
-        fn main() {
-            tauri_build::build()
-        }
+        fn main() {}
         EOF
 
-        # Δημιουργία συμβατού tauri.conf.json
+        # Δημιουργία tauri.conf.json
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
@@ -82,12 +67,10 @@ jobs:
               "all": true
             },
             "bundle": {
-              "active": true,
-              "targets": ["nsis"],
+              "active": false,
+              "targets": [],
               "identifier": "com.shield.desktop",
-              "icon": [
-                "icons/icon.ico"
-              ]
+              "icon": []
             },
             "security": {
               "csp": null
