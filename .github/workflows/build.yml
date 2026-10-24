@@ -20,6 +20,9 @@ jobs:
     - name: Install Rust stable
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Install Python Pillow
+      run: pip install pillow
+
     - name: Install Dependencies & Build Tauri
       shell: bash
       run: |
@@ -28,9 +31,13 @@ jobs:
         # Καθαρισμός τυχόν άκυρου Cargo.toml στο root
         rm -f Cargo.toml
 
-        # Δημιουργία φακέλου icons και αποκωδικοποίηση έγκυρου icon.png μέσω base64
+        # Δημιουργία φακέλου icons και παραγωγή έγκυρου icon.ico μέσω Python Pillow
         mkdir -p src-tauri/icons
-        echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 --decode > src-tauri/icons/icon.png
+        python -c "
+        from PIL import Image
+        img = Image.new('RGB', (256, 256), color = (30, 144, 255))
+        img.save('src-tauri/icons/icon.ico', format='ICO', sizes=[(16,16), (32,32), (48,48), (256,256)])
+        "
 
         # Δημιουργία πλήρους Cargo.toml με το tauri-build
         mkdir -p src-tauri
@@ -58,7 +65,7 @@ jobs:
         }
         EOF
 
-        # Δημιουργία tauri.conf.json με αναφορά στο icon.png
+        # Δημιουργία tauri.conf.json με αναφορά στο icon.ico
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
@@ -80,7 +87,7 @@ jobs:
               "targets": ["nsis"],
               "identifier": "com.shield.desktop",
               "icon": [
-                "icons/icon.png"
+                "icons/icon.ico"
               ]
             },
             "security": {
