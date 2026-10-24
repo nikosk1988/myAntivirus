@@ -22,7 +22,7 @@ jobs:
 
     - name: Install Dependencies & Build Tauri
       run: |
-        cd src-tauri
+        cd myAntivirus/src-tauri
         cargo build --release
 
     - name: Upload Release Binary
