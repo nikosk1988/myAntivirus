@@ -40,11 +40,10 @@ jobs:
         "
 
         # Δημιουργία πλήρους Cargo.toml με το tauri-build
-        mkdir -p src-tauri
         cat << 'EOF' > src-tauri/Cargo.toml
         [package]
         name = "shield-desktop"
-        version = "0.1.0"
+        version = "1.0.0"
         edition = "2021"
 
         [dependencies]
@@ -65,18 +64,18 @@ jobs:
         }
         EOF
 
-        # Δημιουργία tauri.conf.json με αναφορά στο icon.ico
+        # Δημιουργία διορθωμένου tauri.conf.json (με σωστό distDir ανάλογα με τη δομή)
         cat << 'EOF' > src-tauri/tauri.conf.json
         {
           "build": {
-            "distDir": "../ui",
+            "distDir": "./ui",
             "devPath": "http://localhost:1420",
             "beforeDevCommand": "",
             "beforeBuildCommand": ""
           },
           "package": {
-            "productName": "shield-desktop",
-            "version": "0.1.0"
+            "productName": "ShieldCoreAntivirus",
+            "version": "1.0.0"
           },
           "tauri": {
             "allowlist": {
@@ -85,7 +84,7 @@ jobs:
             "bundle": {
               "active": true,
               "targets": ["nsis"],
-              "identifier": "com.shield.desktop",
+              "identifier": "com.shield.core.desktop",
               "icon": [
                 "icons/icon.ico"
               ]
@@ -95,14 +94,22 @@ jobs:
             },
             "windows": [
               {
-                "title": "Shield Desktop",
-                "width": 800,
-                "height": 600
+                "title": "Shield Core Antivirus",
+                "width": 1150,
+                "height": 780,
+                "resizable": true
               }
             ]
           }
         }
         EOF
+
+        # Δημιουργία ενός βασικού index.html μέσα στο src-tauri/ui αν δεν υπάρχει, 
+        # ώστε να μην σκάει με connection refused
+        mkdir -p src-tauri/ui
+        if [ ! -f src-tauri/ui/index.html ]; then
+          echo '<(!DOCTYPE html><html><body><h1>Shield Core Antivirus UI</h1></body></html>' > src-tauri/ui/index.html
+        fi
         
         cd src-tauri
         cargo build --release
