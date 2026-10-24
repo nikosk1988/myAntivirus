@@ -22,8 +22,8 @@ jobs:
 
     - name: Install Dependencies & Build Tauri
       run: |
-        ls -R
-        cd myAntivirus-main/src-tauri
+        Expand-Archive -Path "src-tauri.zip" -DestinationPath "." -Force
+        cd src-tauri
         cargo build --release
 
     - name: Upload Release Binary
